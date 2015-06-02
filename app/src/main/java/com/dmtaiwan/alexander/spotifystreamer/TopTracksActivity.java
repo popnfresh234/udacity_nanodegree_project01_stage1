@@ -3,7 +3,6 @@ package com.dmtaiwan.alexander.spotifystreamer;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -33,7 +32,6 @@ public class TopTracksActivity extends ActionBarActivity {
 
         if (getIntent().getStringExtra(SPOTIFY_ID) != null) {
             String spotifyId = getIntent().getStringExtra(SPOTIFY_ID);
-            Log.i("ID", spotifyId);
             AsyncSpotifyQuery query = new AsyncSpotifyQuery();
             query.execute(spotifyId);
         }
@@ -43,7 +41,6 @@ public class TopTracksActivity extends ActionBarActivity {
         @Override
         protected Tracks doInBackground(String... params) {
 
-            Log.i("PARAMS", params[0]);
             SpotifyApi api = new SpotifyApi();
             final SpotifyService spotify = api.getService();
             HashMap map = new HashMap<String, String>();

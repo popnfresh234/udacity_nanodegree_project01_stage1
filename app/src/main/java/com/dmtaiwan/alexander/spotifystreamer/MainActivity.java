@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -92,8 +91,6 @@ public class MainActivity extends ActionBarActivity {
     public class AsyncSpotifyQuery extends AsyncTask<String, Void, ArtistsPager> {
         @Override
         protected ArtistsPager doInBackground(String... params) {
-
-            Log.i("PARAMS", params[0]);
             SpotifyApi api = new SpotifyApi();
             final SpotifyService spotify = api.getService();
             ArtistsPager results = spotify.searchArtists(params[0]);
