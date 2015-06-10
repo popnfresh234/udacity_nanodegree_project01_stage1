@@ -8,26 +8,22 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.dmtaiwan.alexander.spotifystreamer.R;
 import com.squareup.picasso.Picasso;
 
-import java.util.List;
-
-import kaaes.spotify.webapi.android.models.AlbumSimple;
-import kaaes.spotify.webapi.android.models.Image;
-import kaaes.spotify.webapi.android.models.Track;
+import java.util.ArrayList;
 
 /**
  * Created by Alexander on 6/2/2015.
  */
-public class TrackAdapter extends ArrayAdapter<Track> {
+public class TrackAdapter extends ArrayAdapter<ParcelableTrack> {
 
     private LayoutInflater mInflater;
     private int mLayoutId;
     private Context mContext;
-    private List<Track> mTracks;
+    private ArrayList<ParcelableTrack> mTracks;
+    private String mLargeImgUrl;
 
-    public TrackAdapter(Context context, int resource,  List<Track> tracks) {
+    public TrackAdapter(Context context, int resource, ArrayList<ParcelableTrack> tracks) {
         super(context, resource, tracks);
         mLayoutId = resource;
         mContext = context;
@@ -45,21 +41,17 @@ public class TrackAdapter extends ArrayAdapter<Track> {
         TextView trackNameTextView = (TextView) convertView.findViewById(R.id.text_view_track_name);
         TextView albumNameTextView = (TextView) convertView.findViewById(R.id.text_view_album_name);
 
-        Track track = mTracks.get(position);
-        AlbumSimple album = track.album;
+        ParcelableTrack track = mTracks.get(position);
 
-        String trackName = track.name;
-        String albumName = album.name;
 
+        String trackName = track.getTrackName();
+        String albumName = track.getAlbumName();
+        String imageUrl = track.getImageUrl();
         trackNameTextView.setText(trackName);
         albumNameTextView.setText(albumName);
 
-        List<Image> albumImages = album.images;
-        if (albumImages.size() > 0) {
-            Image image = albumImages.get(0);
-            String imageUrl = image.url;
-            Picasso.with(mContext).load(imageUrl).into(imageView);
-        }
+
+        Picasso.with(mContext).load(imageUrl).into(imageView);
 
 
         return convertView;

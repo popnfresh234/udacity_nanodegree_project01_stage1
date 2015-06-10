@@ -10,22 +10,20 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import java.util.List;
-
-import kaaes.spotify.webapi.android.models.Artist;
-import kaaes.spotify.webapi.android.models.Image;
+import java.util.ArrayList;
 
 /**
  * Created by Alexander on 6/2/2015.
  */
-public class ArtistsAdapter extends ArrayAdapter<Artist> {
+public class ArtistsAdapter extends ArrayAdapter<ParcelableArtist> {
 
-    private List<Artist> mArtists;
+    private ArrayList<ParcelableArtist> mArtists;
     private LayoutInflater mInflater;
     private Context mContext;
     private int mLayoutId;
+    private String mSmallImgUrl;
 
-    public ArtistsAdapter(Context context, int resource, List<Artist> artists) {
+    public ArtistsAdapter(Context context, int resource, ArrayList<ParcelableArtist> artists) {
         super(context, resource, artists);
         mArtists = artists;
         mContext = context;
@@ -43,19 +41,13 @@ public class ArtistsAdapter extends ArrayAdapter<Artist> {
         TextView artistName = (TextView) convertView.findViewById(R.id.text_view_artist_name);
         ImageView artistImage = (ImageView) convertView.findViewById(R.id.image_view_artist);
 
-        Artist artist = mArtists.get(position);
+        ParcelableArtist artist = mArtists.get(position);
+        mSmallImgUrl = artist.getImageUrl();
 
-        //get image and load into view
-        List<Image> images = artist.images;
-        if (images.size() > 0) {
-            Image image = images.get(0);
-            if (image != null) {
-                String imageUrl = image.url;
-                Picasso.with(mContext).load(imageUrl).into(artistImage);
-            }
-        }
+                Picasso.with(mContext).load(mSmallImgUrl).into(artistImage);
 
-        artistName.setText(artist.name);
+
+        artistName.setText(artist.getArtistName());
 
 
         return convertView;

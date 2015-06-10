@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin">
+
+    <TextView
+        android:id="@+id/text_view_player_artist"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal" />
+
+
+    <TextView
+        android:id="@+id/text_view_player_track"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="@dimen/view_vertical_margin"/>
+
+    <ImageView
+        android:id="@+id/image_view_player_track"
+        android:layout_width="400px"
+        android:layout_height="400px"
+        android:layout_gravity="center_horizontal"
+        />
+
+    <TextView
+        android:id="@+id/text_view_player_album"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"/>
+
+    <SeekBar
+        android:id="@+id/seek_bar_player"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_horizontal">
+
+        <Button
+            android:id="@+id/button_player_previous"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/ic_skip_previous_black_48dp"
+            />
+
+        <Button
+            android:id="@+id/button_player_play"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/view_horizontal_margin"
+            android:layout_marginRight="@dimen/view_horizontal_margin"
+            android:background="@drawable/ic_play_arrow_black_48dp" />
+
+        <Button
+            android:id="@+id/button_player_next"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/ic_skip_next_black_48dp" />
+
+    </LinearLayout>
+</LinearLayout>

@@ -1,90 +1,105 @@
 package com.dmtaiwan.alexander.spotifystreamer;
 
-import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
-import android.view.KeyEvent;
-import android.view.View;
-import android.view.inputmethod.EditorInfo;
-import android.widget.AdapterView;
-import android.widget.EditText;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import java.util.List;
-
-import kaaes.spotify.webapi.android.SpotifyApi;
-import kaaes.spotify.webapi.android.SpotifyService;
-import kaaes.spotify.webapi.android.models.Artist;
-import kaaes.spotify.webapi.android.models.ArtistsPager;
-import retrofit.Callback;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
 
 public class MainActivity extends ActionBarActivity {
-
-    private EditText mArtistField;
-    private ListView mListView;
-    private ArtistsAdapter mAdapter;
+    private static final String TAG = "MainActivity";
+    private String mTrackId;
+    public Boolean mTabletLayout;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_player, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_launch_player) {
+            Bundle arguments = new Bundle();
+            arguments.putString(Utils.TRACK_ID, mTrackId);
+            PlayerDialogFragment fragment = new PlayerDialogFragment();
+            fragment.setArguments(arguments);
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            Fragment prevFrag = getSupportFragmentManager().findFragmentByTag("player");
+            if (prevFrag != null) {
+                ft.remove(prevFrag).commit();
+            }
+            if (!mTabletLayout) {
+                ft.replace(R.id.container_main, fragment, "player").addToBackStack(null).commit();
+            }else{
+                fragment.show(ft, "player");
+            }
+
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mListView = (ListView) findViewById(R.id.list_view_artist);
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Artist artist = mAdapter.getItem(position);
-                String spotifyId = artist.id;
+        //load main fragment into container
+        MainFragment mainFragment = new MainFragment();
+        getSupportFragmentManager().beginTransaction().replace(R.id.container_main, mainFragment).commit();
 
-                Intent i = new Intent(getApplicationContext(), TopTracksActivity.class);
-                i.putExtra(TopTracksActivity.SPOTIFY_ID, spotifyId);
-                startActivity(i);
-            }
-        });
-
-        mArtistField = (EditText) findViewById(R.id.edit_text_artist);
-        mArtistField.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    Utils.hideKeyboard(getApplicationContext(), getCurrentFocus());
-                    String query = mArtistField.getText().toString();
-
-                    SpotifyApi api = new SpotifyApi();
-                    final SpotifyService spotify = api.getService();
-                    spotify.searchArtists(query, new Callback<ArtistsPager>() {
-
-                        @Override
-                        public void success(ArtistsPager artistsPager, Response response) {
-                            List<Artist> artists = artistsPager.artists.items;
-                            if (artists.size() > 0) {
-                                mAdapter = new ArtistsAdapter(getApplicationContext(), R.layout.list_item_artist, artists);
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        mListView.setAdapter(mAdapter);
-                                    }
-                                });
-
-                            } else {
-                                Toast.makeText(getApplicationContext(), getString(R.string.toast_no_artist_error), Toast.LENGTH_LONG).show();
-                            }
-                        }
-
-                        @Override
-                        public void failure(RetrofitError error) {
-                            error.printStackTrace();
-                        }
-                    });
-                    return true;
-                }
-                return false;
-            }
-        });
+        //check if tablet layout
+        if (findViewById(R.id.container_track_list) != null) {
+            mTabletLayout = true;
+        } else {
+            mTabletLayout = false;
+        }
     }
+
+    public void onItemSelected(String id) {
+        //Create TopTracks fragment and attach spotify ID
+        Bundle arguments = new Bundle();
+        arguments.putString(Utils.SPOTIFY_ID, id);
+        arguments.putBoolean(Utils.IS_TABLET_LAYOUT, mTabletLayout);
+        TopTracksFragment fragment = new TopTracksFragment();
+        fragment.setArguments(arguments);
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        Fragment prevFrag = getSupportFragmentManager().findFragmentByTag("toptracks");
+        if (prevFrag != null) {
+            ft.remove(prevFrag).commit();
+        }
+        if (!mTabletLayout) {
+            getSupportFragmentManager().beginTransaction().replace(R.id.container_main, fragment, "toptracks").addToBackStack(null).commit();
+        }
+        if (mTabletLayout) {
+            getSupportFragmentManager().beginTransaction().replace(R.id.container_track_list, fragment, "toptracks").addToBackStack(null).commit();
+        }
+    }
+
+    public void launchPlayerDialog(String spotifyId) {
+        PlayerDialogFragment fragment = new PlayerDialogFragment();
+        Bundle arguments = new Bundle();
+        arguments.putString(Utils.TRACK_ID, spotifyId);
+        fragment.setArguments(arguments);
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        Fragment prevFrag = getSupportFragmentManager().findFragmentByTag("player");
+        if (prevFrag != null) {
+            ft.remove(prevFrag);
+        }
+        ft.addToBackStack(null);
+        if (mTabletLayout) {
+            fragment.show(ft, "player");
+        } else {
+            ft.replace(R.id.container_main, fragment, "player").addToBackStack(null).commit();
+        }
+    }
+
+    public void setTrackId(String trackId) {
+        mTrackId = trackId;
+    }
+
 }
