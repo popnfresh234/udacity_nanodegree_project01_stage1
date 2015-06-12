@@ -3,11 +3,14 @@ package com.dmtaiwan.alexander.spotifystreamer;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -18,7 +21,7 @@ import java.io.IOException;
  */
 public class MusicService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener {
 
-
+    private WifiManager.WifiLock mWifiLock;
     private static final String TAG = "MusicService";
     private final IBinder mBinder = new LocalBinder();
     private MediaPlayer mediaPlayer;
@@ -77,9 +80,13 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         return false;
     }
 
+
     @Override
     public void onDestroy() {
         super.onDestroy();
+        mWifiLock.release();
+        mediaPlayer.release();
+        mediaPlayer = null;
         Log.i(TAG, "onDestroy");
     }
 
@@ -129,12 +136,16 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public void initializePlayer() {
         //Initialize media player
         mediaPlayer = new MediaPlayer();
+        mediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+        mWifiLock = ((WifiManager) getSystemService(Context.WIFI_SERVICE)).createWifiLock(WifiManager.WIFI_MODE_FULL, "wifiLock");
+        mWifiLock.acquire();
         mediaPlayer.setOnPreparedListener(this);
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
     }
 
     public void resetPlayer() {
         mediaPlayer.reset();
+
     }
 
     public MediaPlayer getMediaPlayer() {

@@ -33,7 +33,7 @@ public class TopTracksActivity extends ActionBarActivity {
 
             TopTracksFragment fragment = new TopTracksFragment();
             fragment.setArguments(arguments);
-            getSupportFragmentManager().beginTransaction().add(R.id.container_track_list, fragment).commit();
+            getSupportFragmentManager().beginTransaction().add(R.id.container_track_list, fragment, "fragment").commit();
         }
     }
 

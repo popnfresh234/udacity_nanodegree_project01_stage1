@@ -9,10 +9,12 @@ import android.view.inputmethod.InputMethodManager;
  */
 public class Utils{
 
+    public static final String OUTSTATE_ARRAY = "outstate_array";
     public static final String TRACK_ID = "track_id";
     public static final String SPOTIFY_ID = "spotify_id";
     public static final String IS_TABLET_LAYOUT = "is_tablet_layout";
     public static final String TRACK_URL = "track_url";
+    public static final String LAUNCHED_FROM_TRACK_LIST = "launched_from_track_list";
 
     public static final String ACTION_START_FOREGROUND = "action_start_foreground";
     public static final String ACTION_MAIN = "action_main";

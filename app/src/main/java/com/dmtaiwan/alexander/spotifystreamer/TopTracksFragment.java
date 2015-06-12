@@ -30,7 +30,7 @@ import retrofit.client.Response;
 public class TopTracksFragment extends android.support.v4.app.Fragment {
 
 
-    private static final String OUTSTATE_ARRAY = "outstate_array";
+
 
     private ListView mListView;
     private TrackAdapter mAdapter;
@@ -41,6 +41,7 @@ public class TopTracksFragment extends android.support.v4.app.Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_track_list, container, false);
+        setRetainInstance(true);
         mTabletLayout = getArguments().getBoolean(Utils.IS_TABLET_LAYOUT);
         mTrackArray = new ArrayList<ParcelableTrack>();
         mListView = (ListView) rootView.findViewById(R.id.list_view_tracks);
@@ -50,13 +51,12 @@ public class TopTracksFragment extends android.support.v4.app.Fragment {
                 ParcelableTrack track = mAdapter.getItem(position);
                 String trackId = track.getTrackId();
                 Log.i("TABLET LAYOUR", mTabletLayout.toString());
-                ((MainActivity)getActivity()).launchPlayerDialog(trackId);
+                ((MainActivity)getActivity()).launchPlayerDialog(trackId, mTrackArray);
             }
         });
 
         if (savedInstanceState != null) {
-
-            mTrackArray = savedInstanceState.getParcelableArrayList(OUTSTATE_ARRAY);
+            mTrackArray = savedInstanceState.getParcelableArrayList(Utils.OUTSTATE_ARRAY);
             mAdapter = new TrackAdapter(getActivity(), R.layout.list_item_tracks, mTrackArray);
             mListView.setAdapter(mAdapter);
 
@@ -124,7 +124,7 @@ public class TopTracksFragment extends android.support.v4.app.Fragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putParcelableArrayList(OUTSTATE_ARRAY, mTrackArray);
+        outState.putParcelableArrayList(Utils.OUTSTATE_ARRAY, mTrackArray);
         super.onSaveInstanceState(outState);
     }
 }

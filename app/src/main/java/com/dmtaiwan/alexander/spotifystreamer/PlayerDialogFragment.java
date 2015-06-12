@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,6 +48,7 @@ public class PlayerDialogFragment extends android.support.v4.app.DialogFragment 
     private Button mPreviousButton;
     private Button mPlayButton;
     private Button mNextButton;
+    private Boolean mIsNewTrack = false;
 
     private String mTrackUrl;
 
@@ -61,13 +63,16 @@ public class PlayerDialogFragment extends android.support.v4.app.DialogFragment 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-
+        Log.i(TAG, "onCreateView");
         View rootView = inflater.inflate(R.layout.fragment_player, container, false);
+        setRetainInstance(true);
 
-        mTrackId = getArguments().getString(Utils.TRACK_ID);
-        ((MainActivity) getActivity()).setTrackId(mTrackId);
-
-
+        if (savedInstanceState != null) {
+            mTrackId = savedInstanceState.getString(Utils.TRACK_ID);
+        } else {
+            mTrackId = getArguments().getString(Utils.TRACK_ID);
+        }
+        //TODO stop playback when launching from TopTracksFragment but NOT from action bar
         mArtist = (TextView) rootView.findViewById(R.id.text_view_player_artist);
         mTrack = (TextView) rootView.findViewById(R.id.text_view_player_track);
         mAlbum = (TextView) rootView.findViewById(R.id.text_view_player_album);
@@ -81,7 +86,7 @@ public class PlayerDialogFragment extends android.support.v4.app.DialogFragment 
         mPlayButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                mSeekBarUpdate.run();
                 if (!mMusicService.isPlaying() && !mMusicService.isPaused()) {
                     if (mMusicService.getMediaPlayer() != null) {
                         mMusicService.resetPlayer();
@@ -98,13 +103,61 @@ public class PlayerDialogFragment extends android.support.v4.app.DialogFragment 
             }
         });
 
+        mNextButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String trackId = ((MainActivity) getActivity()).getNextTrack();
+                querySpotify(trackId);
+                mTrackId = trackId;
+                Log.i(TAG, mTrackId);
+                ((MainActivity) getActivity()).setTrackId(mTrackId);
+                mIsNewTrack = true;
 
+            }
+        });
+
+        mPreviousButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String trackId = ((MainActivity) getActivity()).getPreviousTrack();
+                querySpotify(trackId);
+                mTrackId = trackId;
+                Log.i(TAG, mTrackId);
+                ((MainActivity) getActivity()).setTrackId(mTrackId);
+                mIsNewTrack = true;
+            }
+        });
+
+        querySpotify(mTrackId);
+
+        return rootView;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        ((MainActivity) getActivity()).setTrackId(mTrackId);
+    }
+
+    private void querySpotify(String trackId) {
         SpotifyApi api = new SpotifyApi();
         final SpotifyService spotify = api.getService();
-        spotify.getTrack(mTrackId, new Callback<Track>() {
+        spotify.getTrack(trackId, new Callback<Track>() {
             @Override
             public void success(Track track, Response response) {
                 mTrackUrl = track.preview_url;
+
+                //Start playback if new track selected
+                if (mIsNewTrack) {
+                    if (mMusicService.getMediaPlayer() != null) {
+                        mMusicService.resetPlayer();
+                        mMusicService.initializePlayer();
+                        mMusicService.prepareService(mTrackUrl);
+                        mStartedPlayback = false;
+                    }
+                    mIsNewTrack = false;
+                }
+
                 List<ArtistSimple> artists = track.artists;
                 ArtistSimple artist = artists.get(0);
                 final String name = artist.name;
@@ -137,8 +190,6 @@ public class PlayerDialogFragment extends android.support.v4.app.DialogFragment 
                 error.printStackTrace();
             }
         });
-
-        return rootView;
     }
 
     @Override
@@ -156,6 +207,7 @@ public class PlayerDialogFragment extends android.support.v4.app.DialogFragment 
         if (!mBound) {
             getActivity().bindService(playIntent, mConnection, Context.BIND_AUTO_CREATE);
             mSeekBarUpdate.run();
+
         }
 
     }
@@ -186,6 +238,13 @@ public class PlayerDialogFragment extends android.support.v4.app.DialogFragment 
                 mStartedPlayback = false;
                 mSeekBarUpdate.run();
             }
+            if (getArguments().getBoolean(Utils.LAUNCHED_FROM_TRACK_LIST)) {
+                if (mMusicService.getMediaPlayer() != null) {
+                    mMusicService.resetPlayer();
+                    mHandler.removeCallbacks(mSeekBarUpdate);
+                    mSeekBar.setProgress(0);
+                }
+            }
         }
 
         @Override
@@ -199,20 +258,16 @@ public class PlayerDialogFragment extends android.support.v4.app.DialogFragment 
         public void run() {
 
             if (mMusicService != null) {
-//                Log.i("laying?", String.valueOf(mMusicService.isPlaying()));
-
-
                 int duration = mMusicService.getDuration();
-//                Log.i(TAG, String.valueOf(duration));
-
                 if (duration > 0) {
                     mSeekBar.setMax(duration);
+                    Log.i(TAG, String.valueOf(duration)+"duration");
                     mStartedPlayback = true;
                 }
-
-
-                    mSeekBar.setProgress(mMusicService.getPosition());
-                    mSeekBar.refreshDrawableState();
+                Log.i(TAG, String.valueOf(mMusicService.getPosition()));
+                if(mMusicService.getPosition()<300000000)
+                mSeekBar.setProgress(mMusicService.getPosition());
+                mSeekBar.refreshDrawableState();
 
 
             }
@@ -223,5 +278,12 @@ public class PlayerDialogFragment extends android.support.v4.app.DialogFragment 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         outState.putString(Utils.TRACK_ID, mTrackId);
+    }
+
+    @Override
+    public void onDestroyView() {
+        if (getDialog() != null && getRetainInstance())
+            getDialog().setDismissMessage(null);
+        super.onDestroyView();
     }
 }

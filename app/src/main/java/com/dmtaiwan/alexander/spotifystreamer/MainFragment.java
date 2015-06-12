@@ -2,6 +2,7 @@ package com.dmtaiwan.alexander.spotifystreamer;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,12 +38,18 @@ public class MainFragment extends android.support.v4.app.Fragment {
     private ArrayList<ParcelableArtist> mArtistArray;
     private ArtistsAdapter mAdapter;
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        mListView.setAdapter(mAdapter);
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-
+        setRetainInstance(true);
         mArtistField = (EditText) rootView.findViewById(R.id.edit_text_artist);
         mListView = (ListView) rootView.findViewById(R.id.list_view_artist);
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -54,10 +61,12 @@ public class MainFragment extends android.support.v4.app.Fragment {
             }
         });
 
-        if (savedInstanceState != null) {
+        if (savedInstanceState != null && savedInstanceState.getParcelableArrayList(OUTSTATE_ARTIST_ARRAY).size()>0) {
+            Log.i(TAG, "returingfromsaved");
             mArtistArray = savedInstanceState.getParcelableArrayList(OUTSTATE_ARTIST_ARRAY);
+            Log.i("ArtistArrat", mArtistArray.toString());
             mAdapter = new ArtistsAdapter(getActivity(), R.layout.list_item_artist, mArtistArray);
-            mListView.setAdapter(mAdapter);
+            mAdapter.notifyDataSetChanged();
             //hide soft keyboard on rotate
             getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         } else {
@@ -133,6 +142,8 @@ public class MainFragment extends android.support.v4.app.Fragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
+        Log.i(TAG, "OnSavedInstanceState");
+        Log.i(TAG, mArtistArray.toString());
         outState.putParcelableArrayList(OUTSTATE_ARTIST_ARRAY, mArtistArray);
         super.onSaveInstanceState(outState);
     }
