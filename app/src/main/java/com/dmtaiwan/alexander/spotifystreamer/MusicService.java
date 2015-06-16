@@ -9,7 +9,6 @@ import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.util.Log;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -62,19 +61,16 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     @Override
     public IBinder onBind(Intent intent) {
-        Log.i(TAG, "onBind");
         return mBinder;
     }
 
     @Override
     public boolean onUnbind(Intent intent) {
-        Log.i(TAG, "onUnBind");
         return false;
     }
 
     @Override
     public void onCreate() {
-        Log.i(TAG, "onCreate");
         mMediaPlayer = new MediaPlayer();
         initPlayer();
         super.onCreate();
@@ -95,7 +91,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     @Override
     public void onPrepared(MediaPlayer mp) {
-        Log.i(TAG, "onPrepared");
         mIsPreparing = false;
         mIsPrepared = true;
         mIsPaused = false;
@@ -146,7 +141,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public void nextTrack() {
         mIsPrepared = false;
         mMediaPlayer.reset();
-        Log.i(TAG, String.valueOf(mArrayPosition));
         int newPosition = mArrayPosition+1;
 
         //If track is last track, loop back to first track
@@ -155,21 +149,18 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         }else {
             mArrayPosition = 0;
         }
-        Log.i(TAG, String.valueOf(mArrayPosition));
         querySpotifyForUrl(mArrayPosition);
     }
 
     public void previousTrack() {
         mIsPrepared = false;
         mMediaPlayer.reset();
-        Log.i(TAG, String.valueOf(mArrayPosition));
         int newPosition = mArrayPosition - 1;
         if (newPosition >= 0) {
             mArrayPosition = newPosition;
         }else {
             mArrayPosition = mTrackArray.size() - 1;
         }
-        Log.i(TAG, String.valueOf(mArrayPosition));
         querySpotifyForUrl(mArrayPosition);
     }
 

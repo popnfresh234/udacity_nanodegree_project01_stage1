@@ -107,7 +107,7 @@ public class MainFragment extends android.support.v4.app.Fragment {
 
                                     if (mAdapter == null) {
                                         mAdapter = new ArtistsAdapter(getActivity(), R.layout.list_item_artist, mArtistArray);
-                                        
+
                                     }else {
                                         //If there's already a top tracks fragment shown, remove it
                                         Fragment fragment = getActivity().getSupportFragmentManager().findFragmentByTag("toptracks");

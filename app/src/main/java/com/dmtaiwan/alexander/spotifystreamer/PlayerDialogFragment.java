@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.DialogFragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -61,20 +60,17 @@ public class PlayerDialogFragment extends DialogFragment implements View.OnClick
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.i(TAG, "onCreate");
         View rootView = inflater.inflate(R.layout.fragment_player, container, false);
         setRetainInstance(true);
         //Hide the launch player icon
         ((MainActivity) getActivity()).hideMenuItem();
 
         if (savedInstanceState != null) {
-            Log.i(TAG, "restoreSaveInstanceState");
             mTrackId = savedInstanceState.getString(Utils.TRACK_ID);
             mTrackArray = savedInstanceState.getParcelableArrayList(Utils.OUTSTATE_ARRAY);
             mArrayPosition = savedInstanceState.getInt(Utils.TRACK_POSITION);
 
             //Track names amd image url
-            Log.i(TAG, mArtistName);
             mArtistName = savedInstanceState.getString(Utils.ARTIST_NAME);
             mTrackName = savedInstanceState.getString(Utils.TRACK_NAME);
             mAlbumName = savedInstanceState.getString(Utils.ALBUM_NAME);
@@ -120,11 +116,8 @@ public class PlayerDialogFragment extends DialogFragment implements View.OnClick
 
     @Override
     public void onStart() {
-        Log.i(TAG, "onStart");
-        Log.i(TAG, String.valueOf(mBound));
         super.onStart();
         if (mServiceIntent == null) {
-            Log.i(TAG, "startingService");
             mServiceIntent = new Intent(getActivity(), MusicService.class);
 
             //set extras
@@ -140,7 +133,6 @@ public class PlayerDialogFragment extends DialogFragment implements View.OnClick
 
         }
         if (!mBound) {
-            Log.i(TAG, "binding");
             getActivity().bindService(mServiceIntent, mConnection, Context.BIND_AUTO_CREATE);
             mSeekBarUpdate.run();
         }
@@ -149,8 +141,6 @@ public class PlayerDialogFragment extends DialogFragment implements View.OnClick
     @Override
     public void onStop() {
         super.onStop();
-        Log.i(TAG, "onStop");
-
         //get latest ID and Position from service, communicate to MainActivity for relaunching player
         mTrackId = mMusicService.getCurrentTrackId();
         mArrayPosition = mMusicService.getArrayPosition();
@@ -165,8 +155,6 @@ public class PlayerDialogFragment extends DialogFragment implements View.OnClick
 
         //unbind service
         if (mBound) {
-            Log.i(TAG, String.valueOf(mBound));
-            Log.i(TAG, "unbinding");
             getActivity().unbindService(mConnection);
             mBound = false;
         }
@@ -176,7 +164,6 @@ public class PlayerDialogFragment extends DialogFragment implements View.OnClick
 
     @Override
     public void onDestroy() {
-        Log.i(TAG, "onDestroy");
         super.onDestroy();
     }
 
@@ -190,7 +177,6 @@ public class PlayerDialogFragment extends DialogFragment implements View.OnClick
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        Log.i(TAG, "onSaveInstanceState");
         //update TrackID
         mTrackId = mMusicService.getCurrentTrackId();
         outState.putString(Utils.TRACK_ID, mTrackId);
@@ -207,7 +193,6 @@ public class PlayerDialogFragment extends DialogFragment implements View.OnClick
         int id = v.getId();
         switch (id) {
             case R.id.button_player_previous:
-                Log.i(TAG, "previousTrack");
                 //If player is paused, reset the play button
                 if (mMusicService.isPaused()) {
                     mPlayButton.setImageResource(android.R.drawable.ic_media_pause);
@@ -234,7 +219,6 @@ public class PlayerDialogFragment extends DialogFragment implements View.OnClick
                 break;
 
             case R.id.button_player_next:
-                Log.i(TAG, "nextTrack");
                 //If player is paused, reset the play button
                 if (mMusicService.isPaused()) {
                     mPlayButton.setImageResource(android.R.drawable.ic_media_pause);
@@ -251,14 +235,12 @@ public class PlayerDialogFragment extends DialogFragment implements View.OnClick
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.i(TAG, "onServiceConnected");
             MusicService.LocalBinder localBinder = (MusicService.LocalBinder) service;
             //Get music service
             mMusicService = localBinder.getService();
 
             //stop and reset player if new track
             if (!mTrackId.equals(mMusicService.getCurrentTrackId())) {
-                Log.i(TAG, "NEW TRACK");
                 mMusicService.setTrackArray(mTrackArray);
                 mMusicService.setTrackPosition(mArrayPosition);
                 mMusicService.play();
@@ -266,7 +248,6 @@ public class PlayerDialogFragment extends DialogFragment implements View.OnClick
                 mBound = true;
             } else {
                 //First time starting track Pass trackArray and position
-                Log.i(TAG, "OLD TRACK");
                 mMusicService.setTrackArray(mTrackArray);
                 mMusicService.setTrackPosition(mArrayPosition);
                 if (mMusicService.isPlaying() || mMusicService.isPreparing()) {
@@ -278,7 +259,6 @@ public class PlayerDialogFragment extends DialogFragment implements View.OnClick
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            Log.i(TAG, "onServiceDisconnected");
             mBound = false;
         }
     };
@@ -290,7 +270,6 @@ public class PlayerDialogFragment extends DialogFragment implements View.OnClick
             if (mMusicService != null && mMusicService.isDataLoaded()) {
                 //Fetch image, artist name, and track name
                 if (!mLoaded) {
-                    Log.i(TAG, "mLoaded");
                     mArtistName = mMusicService.getArtistName();
                     mTrackName = mMusicService.getTrackName();
                     mAlbumName = mMusicService.getAlbumName();

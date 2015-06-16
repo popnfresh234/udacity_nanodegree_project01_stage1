@@ -1,11 +1,9 @@
 package com.dmtaiwan.alexander.spotifystreamer;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
 
 /**
  * Created by Alexander on 6/2/2015.
@@ -37,29 +35,6 @@ public class TopTracksActivity extends ActionBarActivity {
         }
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-
-        // Handle presses on the action bar items
-        switch (item.getItemId()) {
-            case R.id.action_launch_player:
-                Intent intent = new Intent(this, PlayerActivity.class);
-                intent.putExtra(Utils.TRACK_ID, mSpotifyId);
-                startActivity(intent);
-                break;
-            case android.R.id.home:
-                finish();
-                break;
-
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    public void launchPlayer(String trackId) {
-        Intent playerActivityIntent = new Intent(this, PlayerActivity.class);
-        playerActivityIntent.putExtra(Utils.TRACK_ID, trackId);
-        startActivity(playerActivityIntent);
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
