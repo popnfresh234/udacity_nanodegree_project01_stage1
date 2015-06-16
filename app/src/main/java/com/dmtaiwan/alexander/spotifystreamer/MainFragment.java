@@ -2,7 +2,7 @@ package com.dmtaiwan.alexander.spotifystreamer;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.util.Log;
+import android.support.v4.app.Fragment;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -62,20 +62,18 @@ public class MainFragment extends android.support.v4.app.Fragment {
         });
 
         if (savedInstanceState != null && savedInstanceState.getParcelableArrayList(OUTSTATE_ARTIST_ARRAY).size()>0) {
-            Log.i(TAG, "returingfromsaved");
             mArtistArray = savedInstanceState.getParcelableArrayList(OUTSTATE_ARTIST_ARRAY);
-            Log.i("ArtistArrat", mArtistArray.toString());
             mAdapter = new ArtistsAdapter(getActivity(), R.layout.list_item_artist, mArtistArray);
             mAdapter.notifyDataSetChanged();
             //hide soft keyboard on rotate
             getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         } else {
             mArtistArray = new ArrayList<ParcelableArtist>();
-
             mArtistField.setOnEditorActionListener(new TextView.OnEditorActionListener() {
                 @Override
                 public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                     if (actionId == EditorInfo.IME_ACTION_DONE) {
+                        mArtistArray.clear();
                         Utils.hideKeyboard(getActivity(), getActivity().getCurrentFocus());
                         String query = mArtistField.getText().toString();
 
@@ -87,7 +85,6 @@ public class MainFragment extends android.support.v4.app.Fragment {
                             public void success(ArtistsPager artistsPager, Response response) {
                                 List<Artist> artists = artistsPager.artists.items;
                                 if (artists.size() > 0) {
-                                    //TODO create parecleable artist. modify adapter to take list of parcelable objects
                                     for (int i = 0; i < artists.size(); i++) {
                                         Artist artist = artists.get(i);
                                         String artistName = artist.name;
@@ -107,7 +104,27 @@ public class MainFragment extends android.support.v4.app.Fragment {
                                                 parcelableArtist = new ParcelableArtist(artistName, imageUrl, artistId);
                                         mArtistArray.add(parcelableArtist);
                                     }
-                                    mAdapter = new ArtistsAdapter(getActivity(), R.layout.list_item_artist, mArtistArray);
+
+                                    if (mAdapter == null) {
+                                        mAdapter = new ArtistsAdapter(getActivity(), R.layout.list_item_artist, mArtistArray);
+                                        
+                                    }else {
+                                        //If there's already a top tracks fragment shown, remove it
+                                        Fragment fragment = getActivity().getSupportFragmentManager().findFragmentByTag("toptracks");
+                                        if(fragment!= null) {
+                                            getActivity().getSupportFragmentManager().beginTransaction().remove(fragment).commit();
+                                        }
+
+                                        //update adapter with new data
+                                        getActivity().runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                mAdapter.notifyDataSetChanged();
+                                            }
+                                        });
+
+                                    }
+
                                     getActivity().runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
@@ -142,8 +159,6 @@ public class MainFragment extends android.support.v4.app.Fragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        Log.i(TAG, "OnSavedInstanceState");
-        Log.i(TAG, mArtistArray.toString());
         outState.putParcelableArrayList(OUTSTATE_ARTIST_ARRAY, mArtistArray);
         super.onSaveInstanceState(outState);
     }

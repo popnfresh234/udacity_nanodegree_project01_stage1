@@ -4,6 +4,9 @@
     <item
         android:id="@+id/action_launch_player"
         android:title="Launch Player"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="ifRoom"
+        android:visible="false"/>
+
+
 
 </menu>

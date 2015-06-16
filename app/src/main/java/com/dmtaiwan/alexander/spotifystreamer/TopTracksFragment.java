@@ -2,7 +2,6 @@ package com.dmtaiwan.alexander.spotifystreamer;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,8 +29,6 @@ import retrofit.client.Response;
 public class TopTracksFragment extends android.support.v4.app.Fragment {
 
 
-
-
     private ListView mListView;
     private TrackAdapter mAdapter;
     private ArrayList<ParcelableTrack> mTrackArray;
@@ -50,8 +47,7 @@ public class TopTracksFragment extends android.support.v4.app.Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 ParcelableTrack track = mAdapter.getItem(position);
                 String trackId = track.getTrackId();
-                Log.i("TABLET LAYOUR", mTabletLayout.toString());
-                ((MainActivity)getActivity()).launchPlayerDialog(trackId, mTrackArray);
+                ((MainActivity) getActivity()).launchPlayerDialog(trackId, mTrackArray, position);
             }
         });
 
@@ -94,21 +90,24 @@ public class TopTracksFragment extends android.support.v4.app.Fragment {
                                 ParcelableTrack parcelableTrack = new ParcelableTrack(trackName, albumName, imageUrl, trackId);
                                 mTrackArray.add(parcelableTrack);
                             }
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    mAdapter = new TrackAdapter(getActivity(), R.layout.list_item_tracks, mTrackArray);
-                                    mListView.setAdapter(mAdapter);
-                                }
-                            });
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        mAdapter = new TrackAdapter(getActivity(), R.layout.list_item_tracks, mTrackArray);
+                                        mListView.setAdapter(mAdapter);
+                                    }
+                                });
+                            }
                         } else {
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Toast.makeText(getActivity(), getString(R.string.toast_track_error), Toast.LENGTH_LONG).show();
-                                }
-                            });
-
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(getActivity(), getString(R.string.toast_track_error), Toast.LENGTH_LONG).show();
+                                    }
+                                });
+                            }
                         }
                     }
 

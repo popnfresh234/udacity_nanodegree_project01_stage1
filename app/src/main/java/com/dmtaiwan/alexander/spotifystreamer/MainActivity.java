@@ -4,10 +4,10 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.Window;
 
 import java.util.ArrayList;
 
@@ -16,21 +16,31 @@ public class MainActivity extends ActionBarActivity {
     private static final String TAG = "MainActivity";
     private String mTrackId;
     private ArrayList<ParcelableTrack> mTrackArray;
+    private int mTrackPosition;
     public Boolean mTabletLayout;
+    private MenuItem mPlayerItem;
+    private Boolean mIsShowingMenuItem = false;
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_player, menu);
+        mPlayerItem = menu.findItem(R.id.action_launch_player);
+        if (mIsShowingMenuItem) {
+            mPlayerItem.setVisible(true);
+        }
         return super.onCreateOptionsMenu(menu);
     }
-
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_launch_player) {
             Bundle arguments = new Bundle();
             arguments.putString(Utils.TRACK_ID, mTrackId);
+            arguments.putParcelableArrayList(Utils.OUTSTATE_ARRAY, mTrackArray);
+            arguments.putInt(Utils.TRACK_POSITION, mTrackPosition);
+
             PlayerDialogFragment fragment = new PlayerDialogFragment();
             fragment.setArguments(arguments);
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
@@ -40,7 +50,7 @@ public class MainActivity extends ActionBarActivity {
             }
             if (!mTabletLayout) {
                 ft.replace(R.id.container_main, fragment, "fragment").addToBackStack(null).commit();
-            }else{
+            } else {
                 fragment.show(ft, "fragment");
             }
 
@@ -51,17 +61,20 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        getWindow().requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         if (savedInstanceState != null) {
             mTrackId = savedInstanceState.getString(Utils.TRACK_ID);
             mTrackArray = savedInstanceState.getParcelableArrayList(Utils.OUTSTATE_ARRAY);
+            mTrackPosition = savedInstanceState.getInt(Utils.TRACK_POSITION);
+            mIsShowingMenuItem = savedInstanceState.getBoolean(Utils.IS_SHOWING_MENU_ITEM);
+
         }
 
         //load main fragment into container
         if (getSupportFragmentManager().findFragmentByTag("mainfragment") == null) {
-            Log.i("NEW MAIN FRAGMENT", "NEW MAIN FRAGMENT");
             MainFragment mainFragment = new MainFragment();
             getSupportFragmentManager().beginTransaction().add(R.id.container_main, mainFragment, "mainfragment").commit();
         }
@@ -95,18 +108,19 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-    public void launchPlayerDialog(String spotifyId, ArrayList<ParcelableTrack> trackArray) {
+    public void launchPlayerDialog(String spotifyId, ArrayList<ParcelableTrack> trackArray, int trackPosition) {
         mTrackArray = trackArray;
-        Log.i(TAG, mTrackArray.toString());
+        mTrackPosition = trackPosition;
         PlayerDialogFragment fragment = new PlayerDialogFragment();
         Bundle arguments = new Bundle();
         arguments.putString(Utils.TRACK_ID, spotifyId);
         arguments.putBoolean(Utils.LAUNCHED_FROM_TRACK_LIST, true);
+        arguments.putParcelableArrayList(Utils.OUTSTATE_ARRAY, mTrackArray);
+        arguments.putInt(Utils.TRACK_POSITION, mTrackPosition);
         fragment.setArguments(arguments);
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         Fragment prevFrag = getSupportFragmentManager().findFragmentByTag("player");
         if (prevFrag != null) {
-            Log.i(TAG, "removing");
             ft.remove(prevFrag);
         }
         ft.addToBackStack(null);
@@ -121,52 +135,34 @@ public class MainActivity extends ActionBarActivity {
         mTrackId = trackId;
     }
 
+    public void setTrackArray(ArrayList<ParcelableTrack> trackArray) {
+        mTrackArray = trackArray;
+    }
+
+    public void setTrackPosition(int arrayPosition) {
+        mTrackPosition = arrayPosition;
+    }
+
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(Utils.TRACK_ID, mTrackId);
         outState.putParcelableArrayList(Utils.OUTSTATE_ARRAY, mTrackArray);
+        outState.putInt(Utils.TRACK_POSITION, mTrackPosition);
+        outState.putBoolean(Utils.IS_SHOWING_MENU_ITEM, mIsShowingMenuItem);
     }
 
-    public String getNextTrack() {
-        int position = 0;
-        for (int j = 0; j < mTrackArray.size(); j++) {
-            ParcelableTrack track = mTrackArray.get(j);
-            if (track.getTrackId().equals(mTrackId)) {
-                position = j;
-            }
+    public void showMenuItem() {
+        if (mPlayerItem != null) {
+            mPlayerItem.setVisible(true);
+            mIsShowingMenuItem = true;
         }
-        ParcelableTrack nextTrack;
-        Log.i(TAG, String.valueOf(position + 1));
-        if (position + 1 <= mTrackArray.size()-1) {
-            Log.i(TAG, String.valueOf(mTrackArray.size()));
-            nextTrack = mTrackArray.get(position + 1);
-
-        }else {
-            nextTrack = mTrackArray.get(0);
-        }
-        mTrackId = nextTrack.getTrackId();
-        return mTrackId;
     }
 
-    public String getPreviousTrack() {
-        int position = 0;
-        for (int j = 0; j < mTrackArray.size(); j++) {
-            ParcelableTrack track = mTrackArray.get(j);
-            if (track.getTrackId().equals(mTrackId)) {
-                position = j;
-            }
+    public void hideMenuItem() {
+        if (mPlayerItem != null) {
+            mPlayerItem.setVisible(false);
+            mIsShowingMenuItem = false;
         }
-        ParcelableTrack nextTrack;
-        Log.i(TAG, String.valueOf(position - 1));
-        if (position - 1 >= 0) {
-            Log.i(TAG, String.valueOf(mTrackArray.size()));
-            nextTrack = mTrackArray.get(position - 1);
-
-        }else {
-            nextTrack = mTrackArray.get(mTrackArray.size()-1);
-        }
-        mTrackId = nextTrack.getTrackId();
-        return mTrackId;
     }
 }
